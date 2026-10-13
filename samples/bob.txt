@@ -1,0 +1,2 @@
+Bob Karki - bob@example.com
+2 years experience in front-end development with React, JavaScript, HTML, CSS and some Node.js.

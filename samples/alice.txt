@@ -1,0 +1,2 @@
+Alice Rao - alice@example.com - +977 9800000000
+7 years experience as a Python backend developer. Built REST APIs with Django and Flask, PostgreSQL, Docker, AWS, Git, CI/CD pipelines with Jenkins.

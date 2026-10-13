@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume Screener</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c0d;--fg:#f4f4f2;--mut:#8b9093;--line:#23282b;--card:#111416;--acc:#c8ff3d}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#1b2023 0,#0a0c0d 520px) var(--bg);color:var(--fg);font:400 15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;padding:22px 0;font:500 12px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+h1{font:800 clamp(44px,10vw,112px)/.9 Archivo,Arial,sans-serif;letter-spacing:-.04em;text-transform:uppercase;margin:60px 0 24px}
+h1 span{display:block;text-align:right}h1 em{font-style:normal;color:var(--acc)}
+.lead{max-width:420px;color:var(--mut);font-size:14px;margin:0 0 60px}
+h2{font:700 13px Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin:0 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}h1 span{text-align:left}.cand{grid-template-columns:36px 1fr 64px!important}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+textarea,input[type=text]{width:100%;background:#0a0c0d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;resize:vertical}
+textarea{min-height:190px}textarea:focus,input:focus{outline:1px solid var(--acc)}
+#drop{border:1px dashed #3a4246;border-radius:12px;padding:46px 16px;text-align:center;color:var(--mut);cursor:pointer;transition:.2s}
+#drop.on,#drop:hover{border-color:var(--acc);color:var(--fg)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+button{font:700 12px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;border-radius:99px;padding:12px 22px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--fg)}
+button.go{background:var(--acc);color:#0a0c0d;border-color:var(--acc)}button:disabled{opacity:.5}
+.cand{display:grid;grid-template-columns:48px 1fr 90px;gap:16px;padding:20px 0;border-top:1px solid var(--line)}
+.rank{font:800 32px Archivo,sans-serif;color:var(--mut)}
+.cand h3{margin:0;font:700 18px Archivo,sans-serif;text-transform:uppercase}
+.score{font:800 34px Archivo,sans-serif;text-align:right}
+.bar{height:3px;background:var(--line);margin:10px 0}.bar i{display:block;height:100%;background:var(--acc)}
+.tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;margin:3px 4px 0 0;border:1px solid var(--line)}
+.ok{color:var(--acc);border-color:#3d5314}.no{color:#ff7a6b;border-color:#5a2a25}.ex{color:var(--mut)}
+.meta{font:500 11px Archivo,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.err{color:#ff7a6b;font-size:13px}#out{margin:50px 0 80px}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--mut);font-size:12px}
+</style></head><body><div class="wrap">
+<nav><span>Resume Screener</span><span>Flask · scikit-learn</span></nav>
+<h1>Resume <em>&amp;</em><span>Screening</span></h1>
+<p class="lead">Upload PDF, DOCX or TXT resumes, paste the job description, and get a ranked shortlist scored on skills, text similarity and experience.</p>
+<div class="grid">
+ <div class="box"><h2>01 — Job description</h2><textarea id="jd" placeholder="Paste the job description…"></textarea>
+  <h2 style="margin-top:14px">Required skills (comma separated)</h2><input type="text" id="skills" placeholder="python, sql, aws  (blank = auto-detect from JD)"></div>
+ <div class="box"><h2>02 — Resumes</h2>
+  <div id="drop">Drop PDF / DOCX / TXT files here or click to browse</div>
+  <input type="file" id="files" multiple accept=".pdf,.docx,.txt" hidden><div id="list" class="row"></div></div>
+</div>
+<div class="row"><button class="go" id="run">Screen candidates</button><button id="csv" hidden>Export CSV</button><span id="status" class="meta"></span></div>
+<div id="out"></div>
+<footer>Automated scoring is a first-pass filter, not a hiring decision. Review shortlisted candidates manually and watch for bias.</footer>
+</div>
+<script>
+const $=i=>document.getElementById(i);let files=[],last=[];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function addFiles(fl){files.push(...fl);draw()}
+function draw(){$("list").innerHTML=files.map((f,i)=>`<span class="tag">${esc(f.name)} <a href="#" data-i="${i}" style="color:var(--mut);text-decoration:none">×</a></span>`).join("")}
+$("list").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){e.preventDefault();files.splice(+i,1);draw()}};
+$("drop").onclick=()=>$("files").click();$("files").onchange=e=>{addFiles(e.target.files);e.target.value=""};
+["dragover","dragenter"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.add("on")}));
+["dragleave","drop"].forEach(t=>$("drop").addEventListener(t,e=>{e.preventDefault();$("drop").classList.remove("on")}));
+$("drop").addEventListener("drop",e=>addFiles(e.dataTransfer.files));
+$("run").onclick=async()=>{
+  const fd=new FormData();fd.append("jd",$("jd").value);fd.append("skills",$("skills").value);files.forEach(f=>fd.append("files",f));
+  $("run").disabled=true;$("status").textContent="Screening…";
+  try{const r=await fetch("/api/screen",{method:"POST",body:fd});const d=await r.json();
+    if(!r.ok){$("out").innerHTML=`<p class="err">${esc(d.error)}</p>`;return}
+    last=d.results;render(d)}catch(e){$("out").innerHTML='<p class="err">Server error.</p>'}
+  finally{$("run").disabled=false;$("status").textContent=""}};
+function render(d){
+  $("csv").hidden=!d.results.length;
+  $("out").innerHTML="<h2>03 — Ranked shortlist</h2>"+d.results.map((c,i)=>`<div class="cand"><div class="rank">${String(i+1).padStart(2,"0")}</div><div>
+   <h3>${esc(c.name)}</h3><div class="meta">${c.verdict} · ${c.years?c.years+" yrs · ":""}similarity ${c.similarity}%${c.email?" · "+esc(c.email):""}${c.phone?" · "+esc(c.phone):""}</div>
+   <div class="bar"><i style="width:${c.score}%"></i></div>${c.matched.map(s=>`<span class="tag ok">${esc(s)}</span>`).join("")}${c.missing.map(s=>`<span class="tag no">${esc(s)}</span>`).join("")}${c.extra_skills.map(s=>`<span class="tag ex">+${esc(s)}</span>`).join("")}
+   </div><div class="score">${c.score}%</div></div>`).join("")+d.errors.map(e=>`<p class="err">${esc(e)}</p>`).join("")}
+$("csv").onclick=()=>{const rows=[["Rank","Name","Score","Verdict","Years","Email","Phone","Matched","Missing"],...last.map((c,i)=>[i+1,c.name,c.score,c.verdict,c.years,c.email,c.phone,c.matched.join(";"),c.missing.join(";")])];
+  const b=new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="shortlist.csv";a.click()};
+</script></body></html>
